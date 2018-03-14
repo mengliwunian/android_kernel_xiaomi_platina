@@ -1455,67 +1455,43 @@ static int sde_crtc_atomic_check(struct drm_crtc *crtc,
 		goto end;
 	}
 
-	/* validate source split:
+	/*
+	 * enforce pipe priority restrictions
 	 * use pstates sorted by stage to check planes on same stage
 	 * we assume that all pipes are in source split so its valid to compare
 	 * without taking into account left/right mixer placement
 	 */
 	for (i = 1; i < cnt; i++) {
 		struct plane_state *prv_pstate, *cur_pstate;
-		struct sde_rect left_rect, right_rect;
-		int32_t left_pid, right_pid;
-		int32_t stage;
+		int32_t prv_x, cur_x, prv_id, cur_id;
 
 		prv_pstate = &pstates[i - 1];
 		cur_pstate = &pstates[i];
 		if (prv_pstate->stage != cur_pstate->stage)
 			continue;
 
-		stage = cur_pstate->stage;
+		prv_x = prv_pstate->drm_pstate->crtc_x;
+		cur_x = cur_pstate->drm_pstate->crtc_x;
+		prv_id = prv_pstate->sde_pstate->base.plane->base.id;
+		cur_id = cur_pstate->sde_pstate->base.plane->base.id;
 
-		left_pid = prv_pstate->sde_pstate->base.plane->base.id;
-		POPULATE_RECT(&left_rect, prv_pstate->drm_pstate->crtc_x,
-			prv_pstate->drm_pstate->crtc_y,
-			prv_pstate->drm_pstate->crtc_w,
-			prv_pstate->drm_pstate->crtc_h, false);
-
-		right_pid = cur_pstate->sde_pstate->base.plane->base.id;
-		POPULATE_RECT(&right_rect, cur_pstate->drm_pstate->crtc_x,
-			cur_pstate->drm_pstate->crtc_y,
-			cur_pstate->drm_pstate->crtc_w,
-			cur_pstate->drm_pstate->crtc_h, false);
-
-		if (right_rect.x < left_rect.x) {
-			swap(left_pid, right_pid);
-			swap(left_rect, right_rect);
-		}
-
-		/**
-		 * - planes are enumerated in pipe-priority order such that
-		 *   planes with lower drm_id must be left-most in a shared
-		 *   blend-stage when using source split.
-		 * - planes in source split must be contiguous in width
-		 * - planes in source split must have same dest yoff and height
+		/*
+		 * Planes are enumerated in pipe-priority order such that planes
+		 * with lower drm_id must be left-most in a shared blend-stage
+		 * when using source split.
 		 */
-		if (right_pid < left_pid) {
+		if (cur_x > prv_x && cur_id < prv_id) {
 			SDE_ERROR(
-				"invalid src split cfg. priority mismatch. stage: %d left: %d right: %d\n",
-				stage, left_pid, right_pid);
+				"shared z_pos %d lower id plane%d @ x%d should be left of plane%d @ x %d\n",
+				cur_pstate->stage, cur_id, cur_x,
+				prv_id, prv_x);
 			rc = -EINVAL;
 			goto end;
-		} else if (right_rect.x != (left_rect.x + left_rect.w)) {
+		} else if (cur_x < prv_x && cur_id > prv_id) {
 			SDE_ERROR(
-				"non-contiguous coordinates for src split. stage: %d left: %d - %d right: %d - %d\n",
-				stage, left_rect.x, left_rect.w,
-				right_rect.x, right_rect.w);
-			rc = -EINVAL;
-			goto end;
-		} else if ((left_rect.y != right_rect.y) ||
-				(left_rect.h != right_rect.h)) {
-			SDE_ERROR(
-				"source split at stage: %d. invalid yoff/height: l_y: %d r_y: %d l_h: %d r_h: %d\n",
-				stage, left_rect.y, right_rect.y,
-				left_rect.h, right_rect.h);
+				"shared z_pos %d lower id plane%d @ x%d should be left of plane%d @ x %d\n",
+				cur_pstate->stage, prv_id, prv_x,
+				cur_id, cur_x);
 			rc = -EINVAL;
 			goto end;
 		}
