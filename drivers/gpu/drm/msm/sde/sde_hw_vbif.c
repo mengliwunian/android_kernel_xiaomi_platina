@@ -158,7 +158,8 @@ struct sde_hw_vbif *sde_hw_vbif_init(enum sde_vbif idx,
 	c->cap = cfg;
 	_setup_vbif_ops(&c->ops, c->cap->features);
 
-	/* no need to register sub-range in sde dbg, dump entire vbif io base */
+	sde_dbg_reg_register_dump_range(SDE_DBG_NAME, cfg->name, c->hw.blk_off,
+			c->hw.blk_off + c->hw.length, c->hw.xin_id);
 
 	return c;
 }
