@@ -1251,22 +1251,6 @@ int __ipa3_del_rt_rule(u32 rule_hdl)
 		return -EINVAL;
 	}
 
-
-	if (entry->hdr) {
-		hdr_entry = ipa3_id_find(entry->rule.hdr_hdl);
-		if (!hdr_entry || hdr_entry->cookie != IPA_HDR_COOKIE) {
-			IPAERR_RL("Header entry already deleted\n");
-			return -EINVAL;
-		}
-	} else if (entry->proc_ctx) {
-		hdr_proc_entry = ipa3_id_find(entry->rule.hdr_proc_ctx_hdl);
-		if (!hdr_proc_entry ||
-			hdr_proc_entry->cookie != IPA_PROC_HDR_COOKIE) {
-			IPAERR_RL("Proc header entry already deleted\n");
-			return -EINVAL;
-		}
-	}
-
 	if (!strcmp(entry->tbl->name, IPA_DFLT_RT_TBL_NAME)) {
 		IPADBG("Deleting rule from default rt table idx=%u\n",
 			entry->tbl->idx);
