@@ -1874,13 +1874,6 @@ static int sde_dbg_reg_base_release(struct inode *inode, struct file *file)
 {
 	struct sde_dbg_reg_base *dbg;
 
-	if (!file)
-		return -EINVAL;
-
-	dbg = file->private_data;
-	if (!dbg)
-		return -ENODEV;
-
 	mutex_lock(&sde_dbg_base.mutex);
 	if (dbg && dbg->buf) {
 		kfree(dbg->buf);
@@ -1908,7 +1901,7 @@ static ssize_t sde_dbg_reg_base_offset_write(struct file *file,
 	u32 cnt = DEFAULT_BASE_REG_CNT;
 	char buf[24];
 	ssize_t rc = count;
-	dbg = file->private_data;
+
 	if (!dbg)
 		return -ENODEV;
 
