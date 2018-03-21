@@ -1873,6 +1873,7 @@ void sde_dbg_destroy(void)
 static int sde_dbg_reg_base_release(struct inode *inode, struct file *file)
 {
 	struct sde_dbg_reg_base *dbg;
+
 	if (!file)
 		return -EINVAL;
 
