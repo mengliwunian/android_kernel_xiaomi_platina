@@ -1908,10 +1908,6 @@ static ssize_t sde_dbg_reg_base_offset_write(struct file *file,
 	u32 cnt = DEFAULT_BASE_REG_CNT;
 	char buf[24];
 	ssize_t rc = count;
-
-	if (!file)
-		return -EINVAL;
-
 	dbg = file->private_data;
 	if (!dbg)
 		return -ENODEV;
@@ -1945,9 +1941,6 @@ static ssize_t sde_dbg_reg_base_offset_write(struct file *file,
 		rc = -EINVAL;
 		goto exit;
 	}
-
-	if (cnt == 0)
-		return -EINVAL;
 
 	dbg->off = off;
 	dbg->cnt = cnt;
@@ -1987,11 +1980,6 @@ static ssize_t sde_dbg_reg_base_offset_read(struct file *file,
 		return 0;	/* the end */
 
 	mutex_lock(&sde_dbg_base.mutex);
-	if (dbg->off % sizeof(u32)) {
-		mutex_unlock(&sde_dbg_base.mutex);
-		return -EFAULT;
-	}
-
 	len = snprintf(buf, sizeof(buf), "0x%08zx %zx\n", dbg->off, dbg->cnt);
 	if (len < 0 || len >= sizeof(buf)) {
 		mutex_unlock(&sde_dbg_base.mutex);
@@ -2084,9 +2072,6 @@ static ssize_t sde_dbg_reg_base_reg_read(struct file *file,
 		pr_err("invalid handle\n");
 		return -ENODEV;
 	}
-
-	if (!ppos)
-		return -EINVAL;
 
 	mutex_lock(&sde_dbg_base.mutex);
 	if (!dbg->buf) {
