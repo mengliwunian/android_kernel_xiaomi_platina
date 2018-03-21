@@ -1609,45 +1609,6 @@ void sde_dbg_ctrl(const char *name, ...)
 
 }
 
-void sde_dbg_ctrl(const char *name, ...)
-{
-	int i = 0;
-	va_list args;
-	char *blk_name = NULL;
-
-
-	/* no debugfs controlled events are enabled, just return */
-	if (!sde_dbg_base.debugfs_ctrl)
-		return;
-
-	va_start(args, name);
-
-	while ((blk_name = va_arg(args, char*))) {
-		if (i++ >= SDE_EVTLOG_MAX_DATA) {
-			pr_err("could not parse all dbg arguments\n");
-			break;
-		}
-
-		if (IS_ERR_OR_NULL(blk_name))
-			break;
-
-		if (!strcmp(blk_name, "stop_ftrace") &&
-				sde_dbg_base.debugfs_ctrl &
-				DBG_CTRL_STOP_FTRACE) {
-			pr_debug("tracing off\n");
-			tracing_off();
-		}
-
-		if (!strcmp(blk_name, "panic_underrun") &&
-				sde_dbg_base.debugfs_ctrl &
-				DBG_CTRL_PANIC_UNDERRUN) {
-			pr_debug("panic underrun\n");
-			panic("underrun");
-		}
-	}
-
-}
-
 /*
  * sde_dbg_debugfs_open - debugfs open handler for evtlog dump
  * @inode: debugfs inode
