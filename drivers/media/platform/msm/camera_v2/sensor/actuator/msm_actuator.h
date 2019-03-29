@@ -72,6 +72,12 @@ struct msm_actuator_vreg {
 	int num_vreg;
 };
 
+struct msm_actuator_board_info {
+	char actuator_name[NAME_SIZE_MAX];
+	uint32_t i2c_slaveaddr;
+	struct msm_actuator_opcode opcode;
+};
+
 struct msm_actuator_ctrl_t {
 	struct i2c_driver *i2c_driver;
 	struct platform_driver *pdriver;
@@ -108,6 +114,9 @@ struct msm_actuator_ctrl_t {
 	struct msm_camera_gpio_conf *gconf;
 	struct msm_pinctrl_info pinctrl_info;
 	uint8_t cam_pinctrl_status;
+	struct msm_actuator_board_info *aboard_info;
+	struct workqueue_struct *actuator_work_queue;
+	struct work_struct actuator_work;
 };
 
 #endif

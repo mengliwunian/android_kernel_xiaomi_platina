@@ -489,8 +489,13 @@ static void lpi_gpio_dbg_show(struct seq_file *s, struct gpio_chip *chip)
 	unsigned gpio = chip->base;
 	unsigned i;
 
+	struct lpi_gpio_state *state = container_of(chip, struct lpi_gpio_state, chip);
+
+	if (!state || !state->ctrl)
+		return;
+
 	for (i = 0; i < chip->ngpio; i++, gpio++) {
-		lpi_gpio_dbg_show_one(s, NULL, chip, i, gpio);
+		lpi_gpio_dbg_show_one(s, state->ctrl, chip, i, gpio);
 		seq_puts(s, "\n");
 	}
 }
