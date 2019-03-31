@@ -21,8 +21,8 @@
 #include "sdcardfs.h"
 #include <linux/fs_struct.h>
 #include <linux/ratelimit.h>
+#include <linux/sched.h>
 
-/* Do not directly use this function. Use OVERRIDE_CRED() instead. */
 const struct cred *override_fsids(struct sdcardfs_sb_info *sbi,
 		struct sdcardfs_inode_data *data)
 {
@@ -50,7 +50,6 @@ const struct cred *override_fsids(struct sdcardfs_sb_info *sbi,
 	return old_cred;
 }
 
-/* Do not directly use this function, use REVERT_CRED() instead. */
 void revert_fsids(const struct cred *old_cred)
 {
 	const struct cred *cur_cred;
@@ -802,13 +801,6 @@ const struct inode_operations sdcardfs_dir_iops = {
 	.setattr	= sdcardfs_setattr_wrn,
 	.setattr2	= sdcardfs_setattr,
 	.getattr	= sdcardfs_getattr,
-	/* XXX Following operations are implemented,
-	 *     but FUSE(sdcard) or FAT does not support them
-	 *     These methods are *NOT* perfectly tested.
-	.symlink	= sdcardfs_symlink,
-	.link		= sdcardfs_link,
-	.mknod		= sdcardfs_mknod,
-	 */
 };
 
 const struct inode_operations sdcardfs_main_iops = {
